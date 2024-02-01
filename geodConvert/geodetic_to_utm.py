@@ -57,7 +57,7 @@ class GeodeticToUTM(ConversionBase):
         """
         first_approx = ecp["A"] + (1 - ecp["T"] + ecp["C"]) * (ecp["A"] ** 3) / 6
         second_approx = (5 - 18 * ecp["T"] + (ecp["T"] ** 2) + 72 * ecp["C"] - 58 * ecp["e2"]) * (ecp["A"] ** 5) / 120
-        easting = (ecp["k0"] * ecp["N"] * (first_approx + second_approx))
+        easting = (ecp["k0"] * ecp["N"] * (first_approx + second_approx)) + ecp["E0"]
         return easting
 
     @staticmethod
@@ -87,7 +87,7 @@ class GeodeticToUTM(ConversionBase):
         A = (lon - lon0) * cos(lat)
         :return: float
         """
-        return (self.longitude_rad - self.meridian_origin_rad) * math.cos(self.latitude_rad)
+        return (self.longitude_rad - math.radians(self.central_meridian)) * math.cos(self.latitude_rad)
 
     def _get_T(self, ):
         """
@@ -123,12 +123,11 @@ class GeodeticToUTM(ConversionBase):
             "N": self.radius_of_curvature_in_prime_vertical,
             "e2": self.second_eccentricity_squared
         }
-        print(parameters)
         easting = self._get_easting(parameters)
         northing = self._get_northing(parameters)
         return {
-            "easting": easting,
-            "northing": northing,
+            "easting": round(easting, 1),
+            "northing": round(northing, 1),
             "zone": self.zone
         }
 
