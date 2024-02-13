@@ -35,5 +35,35 @@ def compute_meridian_distance(semi_major_axis, first_eccentricity_squared, latit
             (35 * (first_eccentricity_squared ** 3) / 3072) * math.sin(6 * latitude_rad))
 
 
+def compute_foot_point_latitude(
+        semi_major_axis, first_eccentricity_squared, second_eccentricity_squared,
+        northing,
+        **kwargs
+):
+    scale_factor = kwargs["scale_factor"] if kwargs["scale_factor"] else 0.9996
+    e_1 = (1 - math.sqrt(1 - first_eccentricity_squared)) / (
+            1 + math.sqrt(1 - first_eccentricity_squared))
 
+    m = compute_meridian_distance(
+        semi_major_axis,
+        first_eccentricity_squared,
+        math.radians(0)
+    ) + northing / scale_factor
 
+    u = m / (semi_major_axis * (
+            1 - (second_eccentricity_squared / 4) -
+            (3 * (second_eccentricity_squared ** 2) / 64) -
+            (5 * (second_eccentricity_squared ** 3) / 256)
+    ))
+    print({
+        'u': u,
+        'm': m,
+        'e_1': e_1
+    })
+    foot_lat = (u +
+                (3 * e_1 / 2 - 27 * (e_1 ** 3) / 32) * math.sin(2 * u) +
+                (21 * (e_1 ** 3) / 16 - 55 * (e_1 ** 4) / 32) * math.sin(4 * u) +
+                (151 * (e_1 ** 3) / 96) * math.sin(6 * u) +
+                (1097 * (e_1 ** 4) / 512) * math.sin(8 * u)
+                )
+    return foot_lat

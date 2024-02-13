@@ -1,10 +1,12 @@
 import math
+
+from geodConvert.utm_to_geodetic import UTMToGeodetic
 from utility import computations as comp
 
 import pytest
 
 
-class TestBaseClass:
+class TestGeodeticToUTM:
 
     @pytest.fixture(params=[
         (2, 37), (-2, 37), (-2, -37), (2, -37)
@@ -87,4 +89,36 @@ class TestBaseClass:
         assert class_value == expected_value
 
 
+class TestUTMToGeodetic:
 
+    @pytest.fixture(params=[
+        (308069.42, 5451364.52, '42N'),
+        (756735.50, 9287970.13, '36S'),
+        (291251.26, 4014160.33, '15N'),
+        (455315.51, 6711880.57, '19S')
+    ], ids=["Q1", "Q2", "Q3", "Q4"])
+    def convert(self, request):
+        from geodConvert.utm_to_geodetic import UTMToGeodetic
+        print(f"request.param: {request.param[0]}, {request.param[1]}")
+        return UTMToGeodetic(request.param[0], request.param[1], request.param[2])
+
+    @pytest.mark.parametrize("easting, northing, zone, expected", [
+        (308069.42, 5451364.52, '42N', {'latitude': 49.1850261, 'longitude': 66.3660333}),
+        (756735.50, 9287970.13, '36S', {'latitude': -6.43641, 'longitude': 35.321131}),
+        (291251.26, 4014160.33, '15N', {'latitude': 36.249813, 'longitude': -95.323303}),
+        (455315.51, 6711880.57, '19S', {'latitude': -29.72244, 'longitude': -69.46202}),
+    ], ids=["Q1", "Q2", "Q3", "Q4"])
+    def test_convert(self, expected, easting, northing, zone):
+        utm_geo = UTMToGeodetic(easting, northing, zone)
+        computed = utm_geo.convert()
+        assert math.isclose(computed['latitude'], expected['latitude'], abs_tol=0.0001)
+        assert math.isclose(computed['longitude'], expected['longitude'], abs_tol=0.0001)
+
+    def test_foot_point_latitude(self, convert):
+        expected = comp.compute_foot_point_latitude(
+            semi_major_axis=convert.SEMI_MAJOR_AXIS,
+            northing=convert.northing, second_eccentricity_squared=convert.second_eccentricity_squared,
+            first_eccentricity_squared=convert.first_eccentricity_squared,
+            scale_factor=convert.SCALE_FACTOR
+        )
+        assert convert.foot_point_latitude == expected

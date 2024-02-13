@@ -18,6 +18,7 @@ class ConversionBase(ABC):
     SEMI_MAJOR_AXIS = 6378137.0
     SEMI_MINOR_AXIS = 6356752.3142
     INVERSE_FLATTENING = 298.257223563
+    SCALE_FACTOR = 0.9996
 
     @property
     def first_eccentricity_squared(self):
