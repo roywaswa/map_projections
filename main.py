@@ -33,6 +33,7 @@ def conversion_tool():
             longitude=coordinates['longitude']
         )
         converted = converter.convert()
+        print(converted)
     else:
         print("Invalid Conversion Type")
     return converted
